@@ -30,7 +30,7 @@ func (f *fieldVM) parseExprs(tag string) error {
 	exprSelectorPrefix := f.structField.Name
 
 	for exprSelector, exprString := range kvs {
-		expr, err := parseExpr(exprString)
+		expr, err := ParseExpr(exprString)
 		if err != nil {
 			return err
 		}

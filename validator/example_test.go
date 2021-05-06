@@ -3,7 +3,7 @@ package validator_test
 import (
 	"fmt"
 
-	vd "github.com/bytedance/go-tagexpr/v2/validator"
+	vd "github.com/ssdev-go/go-tagexpr/v2/validator"
 )
 
 func Example() {

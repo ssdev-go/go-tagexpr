@@ -24,18 +24,18 @@ type Expr struct {
 }
 
 // parseExpr parses the expression.
-func parseExpr(expr string) (*Expr, error) {
+func ParseExpr(expr string) (*Expr, error) {
 	e := newGroupExprNode()
 	p := &Expr{
 		expr: e,
 	}
 	s := expr
-	_, err := p.parseExprNode(&s, e)
+	_, err := p.ParseExprNode(&s, e)
 	if err != nil {
 		return nil, fmt.Errorf("%q (syntax error): %s", expr, err.Error())
 	}
 	sortPriority(e.RightOperand())
-	err = p.checkSyntax()
+	err = p.CheckSyntax()
 	if err != nil {
 		return nil, err
 	}
@@ -43,11 +43,11 @@ func parseExpr(expr string) (*Expr, error) {
 }
 
 // run calculates the value of expression.
-func (p *Expr) run(field string, tagExpr *TagExpr) interface{} {
+func (p *Expr) Run(field string, tagExpr *TagExpr) interface{} {
 	return p.expr.Run(field, tagExpr)
 }
 
-func (p *Expr) parseOperand(expr *string) (e ExprNode) {
+func (p *Expr) ParseOperand(expr *string) (e ExprNode) {
 	for _, fn := range funcList {
 		if e = fn(p, expr); e != nil {
 			return e
@@ -68,7 +68,7 @@ func (p *Expr) parseOperand(expr *string) (e ExprNode) {
 	return nil
 }
 
-func (*Expr) parseOperator(expr *string) (e ExprNode) {
+func (*Expr) ParseOperator(expr *string) (e ExprNode) {
 	s := *expr
 	if len(s) < 2 {
 		return nil
@@ -123,7 +123,7 @@ func (*Expr) parseOperator(expr *string) (e ExprNode) {
 	return nil
 }
 
-func (p *Expr) parseExprNode(expr *string, e ExprNode) (ExprNode, error) {
+func (p *Expr) ParseExprNode(expr *string, e ExprNode) (ExprNode, error) {
 	trimLeftSpace(expr)
 	if *expr == "" {
 		return nil, nil
@@ -133,12 +133,12 @@ func (p *Expr) parseExprNode(expr *string, e ExprNode) (ExprNode, error) {
 		var subExprNode *string
 		operand, subExprNode = readGroupExprNode(expr)
 		if operand != nil {
-			_, err := p.parseExprNode(subExprNode, operand)
+			_, err := p.ParseExprNode(subExprNode, operand)
 			if err != nil {
 				return nil, err
 			}
 		} else {
-			operand = p.parseOperand(expr)
+			operand = p.ParseOperand(expr)
 		}
 	}
 	if operand == nil {
@@ -146,7 +146,7 @@ func (p *Expr) parseExprNode(expr *string, e ExprNode) (ExprNode, error) {
 	}
 
 	trimLeftSpace(expr)
-	operator := p.parseOperator(expr)
+	operator := p.ParseOperator(expr)
 	if operator == nil {
 		e.SetRightOperand(operand)
 		operand.SetParent(e)
@@ -165,10 +165,10 @@ func (p *Expr) parseExprNode(expr *string, e ExprNode) (ExprNode, error) {
 		operator.Parent().SetRightOperand(operator)
 		e.SetParent(operator)
 	}
-	return p.parseExprNode(expr, operator)
+	return p.ParseExprNode(expr, operator)
 }
 
-func (p *Expr) checkSyntax() error {
+func (p *Expr) CheckSyntax() error {
 
 	return nil
 }

@@ -67,7 +67,7 @@ func newFunc(funcName string, fn func(...interface{}) interface{}) func(*Expr, *
 			if strings.HasPrefix(*subExprNode, ",") {
 				*subExprNode = (*subExprNode)[1:]
 				operand := newGroupExprNode()
-				_, err := p.parseExprNode(trimLeftSpace(subExprNode), operand)
+				_, err := p.ParseExprNode(trimLeftSpace(subExprNode), operand)
 				if err != nil {
 					*expr = lastStr
 					return nil
@@ -183,14 +183,14 @@ func readRegexpFuncExprNode(p *Expr, expr *string) ExprNode {
 	trimLeftSpace(subExprNode)
 	if strings.HasPrefix(*subExprNode, ",") {
 		*subExprNode = (*subExprNode)[1:]
-		_, err = p.parseExprNode(trimLeftSpace(subExprNode), operand)
+		_, err = p.ParseExprNode(trimLeftSpace(subExprNode), operand)
 		if err != nil {
 			*expr = lastStr
 			return nil
 		}
 	} else {
 		var currFieldVal = "$"
-		p.parseExprNode(&currFieldVal, operand)
+		p.ParseExprNode(&currFieldVal, operand)
 	}
 	trimLeftSpace(subExprNode)
 	if *subExprNode != "" {
@@ -262,7 +262,7 @@ func readSprintfFuncExprNode(p *Expr, expr *string) ExprNode {
 		if strings.HasPrefix(*subExprNode, ",") {
 			*subExprNode = (*subExprNode)[1:]
 			operand := newGroupExprNode()
-			_, err := p.parseExprNode(trimLeftSpace(subExprNode), operand)
+			_, err := p.ParseExprNode(trimLeftSpace(subExprNode), operand)
 			if err != nil {
 				*expr = lastStr
 				return nil

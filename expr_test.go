@@ -117,11 +117,11 @@ func TestExpr(t *testing.T) {
 	}
 	for _, c := range cases {
 		t.Log(c.expr)
-		vm, err := parseExpr(c.expr)
+		vm, err := ParseExpr(c.expr)
 		if err != nil {
 			t.Fatal(err)
 		}
-		val := vm.run("", nil)
+		val := vm.Run("", nil)
 		if !reflect.DeepEqual(val, c.val) {
 			if f, ok := c.val.(float64); ok && math.IsNaN(f) && math.IsNaN(val.(float64)) {
 				continue
@@ -145,11 +145,11 @@ func TestPriority(t *testing.T) {
 	}
 	for _, c := range cases {
 		t.Log(c.expr)
-		vm, err := parseExpr(c.expr)
+		vm, err := ParseExpr(c.expr)
 		if err != nil {
 			t.Fatal(err)
 		}
-		val := vm.run("", nil)
+		val := vm.Run("", nil)
 		if !reflect.DeepEqual(val, c.val) {
 			if f, ok := c.val.(float64); ok && math.IsNaN(f) && math.IsNaN(val.(float64)) {
 				continue
@@ -181,11 +181,11 @@ func TestBuiltInFunc(t *testing.T) {
 	}
 	for _, c := range cases {
 		t.Log(c.expr)
-		vm, err := parseExpr(c.expr)
+		vm, err := ParseExpr(c.expr)
 		if err != nil {
 			t.Fatal(err)
 		}
-		val := vm.run("", nil)
+		val := vm.Run("", nil)
 		if !reflect.DeepEqual(val, c.val) {
 			if f, ok := c.val.(float64); ok && math.IsNaN(f) && math.IsNaN(val.(float64)) {
 				continue
@@ -210,7 +210,7 @@ func TestSyntaxIncorrect(t *testing.T) {
 		{incorrectExpr: "sprintf('a'+'b')"},
 	}
 	for _, c := range cases {
-		_, err := parseExpr(c.incorrectExpr)
+		_, err := ParseExpr(c.incorrectExpr)
 		if err == nil {
 			t.Fatalf("expect syntax incorrect: %s", c.incorrectExpr)
 		} else {

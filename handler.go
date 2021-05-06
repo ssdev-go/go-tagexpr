@@ -42,7 +42,7 @@ func (f *FieldHandler) EvalFuncs() map[ExprSelector]func() interface{} {
 		expr := v
 		exprSelector := ExprSelector(k)
 		evals[exprSelector] = func() interface{} {
-			return expr.run(exprSelector.Name(), targetTagExpr)
+			return expr.Run(exprSelector.Name(), targetTagExpr)
 		}
 	}
 	return evals
@@ -102,7 +102,7 @@ func (e *ExprHandler) Path() string {
 // NOTE:
 //  result types: float64, string, bool, nil
 func (e *ExprHandler) Eval() interface{} {
-	return e.expr.s.exprs[e.selector].run(e.base, e.targetExpr)
+	return e.expr.s.exprs[e.selector].Run(e.base, e.targetExpr)
 }
 
 // EvalFloat evaluates the value of the struct tag expression.

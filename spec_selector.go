@@ -41,7 +41,7 @@ func (p *Expr) readSelectorExprNode(expr *string) ExprNode {
 	operand.subExprs = make([]ExprNode, 0, len(subSelector))
 	for _, s := range subSelector {
 		grp := newGroupExprNode()
-		_, err := p.parseExprNode(&s, grp)
+		_, err := p.ParseExprNode(&s, grp)
 		if err != nil {
 			return nil
 		}

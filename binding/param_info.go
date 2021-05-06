@@ -12,7 +12,7 @@ import (
 	"github.com/henrylee2cn/ameda"
 	"github.com/tidwall/gjson"
 
-	"github.com/bytedance/go-tagexpr/v2"
+	"github.com/ssdev-go/go-tagexpr/v2"
 )
 
 const (

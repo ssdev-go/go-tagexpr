@@ -33,7 +33,7 @@ import (
 	"github.com/henrylee2cn/goutil"
 	"github.com/tidwall/gjson"
 
-	"github.com/bytedance/go-tagexpr/v2/binding"
+	"github.com/ssdev-go/go-tagexpr/v2/binding"
 )
 
 var fieldsmu sync.RWMutex

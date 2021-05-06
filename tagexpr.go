@@ -133,7 +133,45 @@ func (vm *VM) Run(structPtrOrReflectValue interface{}) (*TagExpr, error) {
 		vm.rw.Lock()
 		s, ok = vm.structJar[tid]
 		if !ok {
-			s, err = vm.registerStructLocked(v.Type())
+			s, err = vm.registerStructLocked(v.Type(), nil)
+			if err != nil {
+				vm.rw.Unlock()
+				return nil, err
+			}
+		}
+		vm.rw.Unlock()
+	}
+	return s.newTagExpr(ptr, ""), nil
+}
+
+func (vm *VM) RunByExpr(structPtrOrReflectValue interface{}, exprs map[string]string) (*TagExpr, error) {
+	var v reflect.Value
+	switch t := structPtrOrReflectValue.(type) {
+	case reflect.Value:
+		v = ameda.DereferenceValue(t)
+	default:
+		v = ameda.DereferenceValue(reflect.ValueOf(t))
+	}
+	if err := checkStructMapAddr(v); err != nil {
+		return nil, err
+	}
+
+	u := ameda.ValueFrom2(&v)
+	ptr := unsafe.Pointer(u.Pointer())
+	if ptr == nil {
+		return nil, unsupportNil
+	}
+
+	tid := u.RuntimeTypeID()
+	var err error
+	vm.rw.RLock()
+	s, ok := vm.structJar[tid]
+	vm.rw.RUnlock()
+	if !ok {
+		vm.rw.Lock()
+		s, ok = vm.structJar[tid]
+		if !ok {
+			s, err = vm.registerStructLocked(v.Type(), exprs)
 			if err != nil {
 				vm.rw.Unlock()
 				return nil, err
@@ -250,7 +288,7 @@ func (vm *VM) subRun(path string, t reflect.Type, tid uintptr, ptr unsafe.Pointe
 		vm.rw.Lock()
 		s, ok = vm.structJar[tid]
 		if !ok {
-			s, err = vm.registerStructLocked(t)
+			s, err = vm.registerStructLocked(t, nil)
 			if err != nil {
 				vm.rw.Unlock()
 				return nil, err
@@ -261,7 +299,7 @@ func (vm *VM) subRun(path string, t reflect.Type, tid uintptr, ptr unsafe.Pointe
 	return s.newTagExpr(ptr, path), nil
 }
 
-func (vm *VM) registerStructLocked(structType reflect.Type) (*structVM, error) {
+func (vm *VM) registerStructLocked(structType reflect.Type, exprs map[string]string) (*structVM, error) {
 	structType, err := vm.getStructType(structType)
 	if err != nil {
 		return nil, err
@@ -277,9 +315,19 @@ func (vm *VM) registerStructLocked(structType reflect.Type) (*structVM, error) {
 	var numField = structType.NumField()
 	var structField reflect.StructField
 	var sub *structVM
+	usTag := true
+	if exprs != nil && len(exprs) > 0 {
+		usTag = false
+	}
 	for i := 0; i < numField; i++ {
 		structField = structType.Field(i)
-		field, err := s.newFieldVM(structField)
+		expr := ""
+		if !usTag {
+			if _, ok := exprs[structField.Name]; ok {
+				expr = exprs[structField.Name]
+			}
+		}
+		field, err := s.newFieldVM(structField, expr)
 		if err != nil {
 			return nil, err
 		}
@@ -288,7 +336,7 @@ func (vm *VM) registerStructLocked(structType reflect.Type) (*structVM, error) {
 			field.setUnsupportGetter()
 			switch field.elemKind {
 			case reflect.Struct:
-				sub, err = vm.registerStructLocked(field.structField.Type)
+				sub, err = vm.registerStructLocked(field.structField.Type, exprs)
 				if err != nil {
 					return nil, err
 				}
@@ -305,7 +353,7 @@ func (vm *VM) registerStructLocked(structType reflect.Type) (*structVM, error) {
 		case reflect.Bool:
 			field.setBoolGetter()
 		case reflect.Array, reflect.Slice, reflect.Map:
-			sub, err = vm.registerIndirectStructLocked(field)
+			sub, err = vm.registerIndirectStructLocked(field, exprs)
 			if err != nil {
 				return nil, err
 			}
@@ -317,7 +365,7 @@ func (vm *VM) registerStructLocked(structType reflect.Type) (*structVM, error) {
 	return s, nil
 }
 
-func (vm *VM) registerIndirectStructLocked(field *fieldVM) (*structVM, error) {
+func (vm *VM) registerIndirectStructLocked(field *fieldVM, exprs map[string]string) (*structVM, error) {
 	field.setLengthGetter()
 	if field.tagOp == tagOmit {
 		return nil, nil
@@ -342,7 +390,7 @@ func (vm *VM) registerIndirectStructLocked(field *fieldVM) (*structVM, error) {
 				case reflect.Slice, reflect.Array, reflect.Map, reflect.Ptr:
 					tt = tt.Elem()
 				case reflect.Struct:
-					_, err := vm.registerStructLocked(tt)
+					_, err := vm.registerStructLocked(tt, exprs)
 					if err != nil {
 						return nil, err
 					}
@@ -359,7 +407,7 @@ func (vm *VM) registerIndirectStructLocked(field *fieldVM) (*structVM, error) {
 				goto F2
 			}
 		case reflect.Struct:
-			s, err := vm.registerStructLocked(t)
+			s, err := vm.registerStructLocked(t, exprs)
 			if err != nil {
 				return nil, err
 			}
@@ -404,14 +452,17 @@ func (vm *VM) newStructVM() *structVM {
 	}
 }
 
-func (s *structVM) newFieldVM(structField reflect.StructField) (*fieldVM, error) {
+func (s *structVM) newFieldVM(structField reflect.StructField, expr string) (*fieldVM, error) {
 	f := &fieldVM{
 		structField:   structField,
 		exprs:         make(map[string]*Expr, 8),
 		origin:        s,
 		fieldSelector: structField.Name,
 	}
-	err := f.parseExprs(structField.Tag.Get(s.vm.tagName))
+	if expr == "" {
+		expr = structField.Tag.Get(s.vm.tagName)
+	}
+	err := f.parseExprs(expr)
 	if err != nil {
 		return nil, err
 	}
@@ -825,7 +876,7 @@ func (t *TagExpr) Eval(exprSelector string) interface{} {
 	if err != nil {
 		return nil
 	}
-	return expr.run(base, targetTagExpr)
+	return expr.Run(base, targetTagExpr)
 }
 
 // Range loop through each tag expression.

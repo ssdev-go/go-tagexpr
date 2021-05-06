@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	vd "github.com/bytedance/go-tagexpr/v2/validator"
+	vd "github.com/ssdev-go/go-tagexpr/v2/validator"
 )
 
 func TestNil(t *testing.T) {
@@ -277,5 +277,3 @@ func TestStructSliceMap(t *testing.T) {
 	err := vd.Validate(s, true)
 	assert.EqualError(t, err, "invalid parameter: A{v for k=x}.f.g\tinvalid parameter: B[0]{v for k=y}.f.g\tinvalid parameter: C{v for k=z}[0]{v for k=zz}.f.g")
 }
-
-

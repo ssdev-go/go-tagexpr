@@ -17,7 +17,7 @@ package tagexpr_test
 import (
 	"fmt"
 
-	tagexpr "github.com/bytedance/go-tagexpr/v2"
+	tagexpr "github.com/ssdev-go/go-tagexpr/v2"
 )
 
 func Example() {

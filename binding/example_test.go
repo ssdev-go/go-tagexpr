@@ -10,7 +10,7 @@ import (
 
 	"github.com/henrylee2cn/goutil/httpbody"
 
-	"github.com/bytedance/go-tagexpr/v2/binding"
+	"github.com/ssdev-go/go-tagexpr/v2/binding"
 )
 
 func Example() {

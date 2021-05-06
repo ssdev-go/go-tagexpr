@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/bytedance/go-tagexpr/v2"
+	"github.com/ssdev-go/go-tagexpr/v2"
 )
 
 type in uint8

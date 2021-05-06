@@ -10,8 +10,8 @@ import (
 	"github.com/henrylee2cn/ameda"
 	"github.com/henrylee2cn/goutil"
 
-	"github.com/bytedance/go-tagexpr/v2"
-	"github.com/bytedance/go-tagexpr/v2/validator"
+	"github.com/ssdev-go/go-tagexpr/v2"
+	"github.com/ssdev-go/go-tagexpr/v2/validator"
 )
 
 // Binding binding and verification tool for http request
